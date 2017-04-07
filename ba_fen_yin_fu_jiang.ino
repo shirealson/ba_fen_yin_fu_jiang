@@ -13,6 +13,7 @@ int period;//游戏进行阶段
 const int fps=41;//1000除以24,24帧
 
 const float g=0.1;//重力加速度
+const int block_length=32;
 
 //声明变量区--------------------------------
 int sound;
@@ -95,59 +96,88 @@ static unsigned char game_LOGO[] U8G_PROGMEM = {
 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 };
 
+static unsigned char bafen[] U8G_PROGMEM={
+0xC0,0x03,0xE0,0x03,0xF8,0x03,0xB8,0x03,0x88,0x07,0x80,0x0F,0xF0,0x1F,0xF8,0x1F,
+0xD8,0x37,0xB8,0x3B,0xD8,0x37,0xF8,0x3F,0xF8,0x3F,0xF8,0x7F,0xF8,0x6F,0xF0,0x3F,//C:\Users\hasee\Desktop\八分音符酱.bmp0
+};
+
 void start_page()//游戏开始画面
 {
   sound=analogRead(mic_PIN);
   Serial.print("Sound:");
   Serial.println(sound);
   if(sound>600)
-  //period=2;//开始游戏
+  {
+     period=2;//开始游戏
+    for(int i=0;i<5;i++)//初始化地图信息
+    {
+        BlockY[i]=55;
+        BlockX[i]=block_length*i;
+       
+      }
+        PlayerY=BlockY[0]-32;//角色位置
+        PlayerX=15;
+        fall=0;
+        v=0;
 
+    
+    }
+ 
   u8g.firstPage();
    do
    {
         u8g.drawXBMP(0,0,128,64,game_LOGO);
    } while (u8g.nextPage());   
   //delay(fps);
-  delay(100);
   }
 
   
 
 
-void game_on()
+
+void dixing()//生成地形函数
 {
   
-  delay(fps);
-  game_on_move();
-  
+  for(int i=0;i<=4;++i)
+  if(BlockX[i]<=0-block_length-1)
+  {
+    BlockX[i]=127;
+  BlockY[i]=random(1,min(BlockY[(i+4)%5]+2,5));//高度范围1~5，相比上一个矩阵最多高2
   }
-
+}
   void game_on_draw()//该函数用来绘图
   {
+    for(int i=0;i<5;i++)
+    {
+      u8g.drawBox(BlockX[i],BlockY[i],block_length,5);//长32，高5的方块
+      
+    }
     
+    u8g.drawXBMP(PlayerX,PlayerY,16,16,bafen);
     
     
     
     }
 
-    void game_on_move()//该函数用来控制方块的运动
+    void game_on_move()//该函数用来控制方块的移动及判定
     {
-      if(BlockIndex1==5)
-          BlockIndex2=0;
-          
       sound=analogRead(mic_PIN);//读麦克风声音
+      Serial.print("Current MIC");Serial.println(sound);
       int PlayerFootY=PlayerY+16;//假设人物高16像素,这是脚的位置
       for(int i=0;i<5;i++)
       BlockX[i]-=1;//每帧左移一像素
-  
-        if((PlayerX<BlockX[BlockIndex1+(板块长度)]||PlayerX>BlockX[BlockIndex2]) && (abs(BlockY[BlockIndex1]-PlayerFootY)<3||abs(BlockY[BlockIndex2]-PlayerFootY)<3))
+      dixing();//生成地形
+        if((PlayerX<BlockX[BlockIndex1+block_length]||PlayerX>BlockX[BlockIndex2]) && (abs(BlockY[BlockIndex1]-PlayerFootY)<3||abs(BlockY[BlockIndex2]-PlayerFootY)<3))
         //判定核心语句 当人物的最左边在方块范围内且处于方块上时不会下坠
          {
            fall=0;
+           Serial.print("PlayerX ");Serial.println(PlayerX);
+           Serial.print("PlayerY ");Serial.println(PlayerY);
+            Serial.print("abs(BlockY[BlockIndex1]-PlayerFootY)   ");Serial.println(abs(BlockY[BlockIndex1]-PlayerFootY));
             v=0;//重置速度
           }
         else
+        Serial.println("EXCUSE ME?");
             fall=1;
 
     if(sound>500)
@@ -166,7 +196,7 @@ void game_on()
 
         if(PlayerY>64)
         {
-          period=3;//死了
+          //period=3;//死了
           
           }
 
@@ -196,6 +226,20 @@ void game_on()
         
         
       }
+
+  void game_on()
+{
+  
+  delay(fps);
+  game_on_move();
+  u8g.firstPage();
+   do
+   {
+       game_on_draw();
+   } while (u8g.nextPage());   
+  
+  
+  }
 
 void game_over()
 {
