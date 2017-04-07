@@ -12,7 +12,7 @@ int period;//游戏进行阶段
 
 const int fps=41;//1000除以24,24帧
 
-const float g=0.1;//重力加速度
+const float g=0.3;//重力加速度
 const int block_length=32;
 
 //声明变量区--------------------------------
@@ -23,7 +23,7 @@ int BlockX[5];
 int BlockY[5];//一共五个方块
 int BlockIndex1;//代表目前所处的方块下标
 int BlockIndex2;//代表目前所处的方块的下一个方块下标
-int v;//下坠速度
+float v;//下坠速度
 int score;//分数
 bool fall=0;//是否处于下坠状态
 
@@ -119,6 +119,8 @@ void start_page()//游戏开始画面
         PlayerX=15;
         fall=0;
         v=0;
+        BlockIndex1=0;
+        BlockIndex2=1;
 
     
     }
@@ -138,11 +140,12 @@ void start_page()//游戏开始画面
 void dixing()//生成地形函数
 {
   
-  for(int i=0;i<=4;++i)
+ for(int i=0;i<=4;++i)
   if(BlockX[i]<=0-block_length-1)
   {
     BlockX[i]=127;
-  BlockY[i]=random(1,min(BlockY[(i+4)%5]+2,5));//高度范围1~5，相比上一个矩阵最多高2
+  BlockY[i]=63-4*random(1,min(BlockY[(i+4)%5]+2,5));//高度范围1~5，相比上一个矩阵最多高2
+
   }
 }
   void game_on_draw()//该函数用来绘图
@@ -165,38 +168,41 @@ void dixing()//生成地形函数
       Serial.print("Current MIC");Serial.println(sound);
       int PlayerFootY=PlayerY+16;//假设人物高16像素,这是脚的位置
       for(int i=0;i<5;i++)
-      BlockX[i]-=1;//每帧左移一像素
+      BlockX[i]-=2;//每帧左移一像素
       dixing();//生成地形
-        if((PlayerX<BlockX[BlockIndex1+block_length]||PlayerX>BlockX[BlockIndex2]) && (abs(BlockY[BlockIndex1]-PlayerFootY)<3||abs(BlockY[BlockIndex2]-PlayerFootY)<3))
+      
+        if((PlayerX<BlockX[BlockIndex1]+block_length&&abs(BlockY[BlockIndex1]-PlayerFootY)<3)||(PlayerX+16>BlockX[BlockIndex2] && abs(BlockY[BlockIndex2]-PlayerFootY)<3))
         //判定核心语句 当人物的最左边在方块范围内且处于方块上时不会下坠
          {
            fall=0;
-           Serial.print("PlayerX ");Serial.println(PlayerX);
-           Serial.print("PlayerY ");Serial.println(PlayerY);
-            Serial.print("abs(BlockY[BlockIndex1]-PlayerFootY)   ");Serial.println(abs(BlockY[BlockIndex1]-PlayerFootY));
             v=0;//重置速度
           }
         else
+        {
         Serial.println("EXCUSE ME?");
             fall=1;
-
-    if(sound>500)
+        }
+Serial.println("haha");
+    if(sound>500&& fall==0)
         {
           v=-map(sound,500,1000,0,5);//吼叫产生向上速度
           fall=1;//设状态为下坠
           
           }
 
-                   
+                  
        if(fall==1)
        {
-         PlayerY+=v;//下坠
-         v+=g;
+        Serial.print("FALL:");Serial.println(fall); 
+         PlayerY=PlayerY+v;//下坠
+         v=v+g;
+         Serial.print("PlayerY:");Serial.println(PlayerY); 
+          Serial.print("V:");Serial.println(v); 
         }
 
         if(PlayerY>64)
         {
-          //period=3;//死了
+          period=3;//死了
           
           }
 
@@ -230,7 +236,7 @@ void dixing()//生成地形函数
   void game_on()
 {
   
-  delay(fps);
+  
   game_on_move();
   u8g.firstPage();
    do
