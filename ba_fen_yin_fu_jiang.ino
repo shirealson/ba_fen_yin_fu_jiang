@@ -134,6 +134,7 @@ void start_page()//游戏开始画面
         BlockX[i]=block_length*i;
        
       }
+        randomSeed(analogRead(A0));//重置随机数种子
         PlayerY=BlockY[0]-32;//角色位置
         PlayerX=15;
         fall=0;
@@ -156,17 +157,20 @@ void start_page()//游戏开始画面
 
 
 
-void dixing()//生成地形函数
+void dixing()//地形生成函数
 {
   
- for(int i=0;i<=4;++i)
+  for(int i=0;i<=4;++i)
   if(BlockX[i]<=0-block_length-1)
   {
     BlockX[i]=127;
-  BlockY[i]=63-4*random(1,min(BlockY[(i+4)%5]+2,5));//高度范围1~5，相比上一个矩阵最多高2
+  do{
+    BlockY[i]=map(random(1,6), 1,6 , 23, 63);
+  }while(BlockY[(i+4)%5]-BlockY[i]>=29); 
+  }
 
   }
-}
+  
   void game_on_draw()//该函数用来绘图
   {
     for(int i=0;i<5;i++)
@@ -207,7 +211,7 @@ void dixing()//生成地形函数
 
     if(sound>500&& fall==0)
         {
-          v=-map(sound,500,1000,0,8);//吼叫产生向上速度
+          v=-map(sound,500,1000,0,10);//吼叫产生向上速度
           fall=1;//设状态为下坠
           
           }
