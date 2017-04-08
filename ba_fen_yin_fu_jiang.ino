@@ -17,10 +17,10 @@ const int block_length=32;
 
 //声明变量区--------------------------------
 int sound;
-int PlayerX;// 小人位置
-int PlayerY;
+float PlayerX;// 小人位置
+float PlayerY;
 int BlockX[5];
-int BlockY[5];//一共五个方块
+float BlockY[5];//一共五个方块
 int BlockIndex1;//代表目前所处的方块下标
 int BlockIndex2;//代表目前所处的方块的下一个方块下标
 float v;//下坠速度
@@ -195,7 +195,7 @@ void dixing()//地形生成函数
       BlockX[i]-=2;//每帧左移2像素
       dixing();//生成地形
       
-        if((PlayerX<BlockX[BlockIndex1]+block_length&&abs(BlockY[BlockIndex1]-PlayerFootY)<3)||(PlayerX+16>BlockX[BlockIndex2] && abs(BlockY[BlockIndex2]-PlayerFootY)<3))
+        if((PlayerX<=BlockX[BlockIndex1]+block_length&&abs(BlockY[BlockIndex1]-PlayerFootY)<3)||(PlayerX+16>=BlockX[BlockIndex2] && abs(BlockY[BlockIndex2]-PlayerFootY)<3))
         //判定核心语句 当人物的最左边在方块范围内且处于方块上时不会下坠
          {
            fall=0;
@@ -221,6 +221,9 @@ void dixing()//地形生成函数
        {
          PlayerY=PlayerY+v;//下坠
          v=v+g;
+         if(v>=6)
+         v=5.9;
+         
         }
 
         if(PlayerY>64)
